@@ -38,4 +38,4 @@ jobs:
       shell: pwsh
     - name: publish to nuget
       run: | 
-          dotnet nuget push ./GooglePay.PaymentDataCryptography/out/GooglePay-CryptoUtils.*.nupkg -k ${{ secrets.Nuget_tristan }} -s https://api.nuget.org/v3/index.json
+          dotnet nuget push ./GooglePay.PaymentDataCryptography/out/GooglePay-CryptoUtils.*.symbols.nupkg -k ${{ secrets.Nuget_tristan }} -s https://api.nuget.org/v3/index.json
