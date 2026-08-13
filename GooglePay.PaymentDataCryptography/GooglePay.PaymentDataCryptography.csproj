@@ -5,7 +5,7 @@
     <LangVersion>latest</LangVersion>
     <PackageId>GooglePay-CryptoUtils</PackageId>
     <AssemblyName>GooglePay-CryptoUtils</AssemblyName>
-    <VersionPrefix>1.0.1</VersionPrefix>
+    <VersionPrefix>1.0.2</VersionPrefix>
     <!-- todo: pass in env var build number as part of version -->
     <!-- <VersionSuffix>$(VersionSuffix)</VersionSuffix> -->
     <PackageProjectUrl>https://github.com/mrtristan/payment-data-cryptography-dotnet</PackageProjectUrl>
@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
