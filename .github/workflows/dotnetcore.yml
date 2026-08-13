@@ -1,15 +1,6 @@
-name: .NET Core
+name: .NET
 
 on: push
-
-# vm contents
-# https://github.com/actions/virtual-environments/tree/main/images/linux
-
-# shell notes
-# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#using-a-specific-shell
-
-# default env vars:
-# https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables#default-environment-variables
 
 jobs:
   build:
@@ -17,25 +8,35 @@ jobs:
     env:
       DOTNET_NOLOGO: true
     steps:
-    - uses: actions/checkout@v1
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v2
+    - uses: actions/checkout@v4
       with:
-        dotnet-version: '6.0.x'
-    - name: dotnet build
+        # The Wycheproof test vectors are a submodule; without this the ECDH tests
+        # cannot find their data and the suite fails on a missing file.
+        submodules: recursive
+
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    # Gates the pack/publish below - the package is not built unless the full
+    # suite, including the Wycheproof ECDH vectors, passes.
+    - name: Test
+      run: dotnet test GooglePay.PaymentDataCryptography.Tests/GooglePay.PaymentDataCryptography.Tests.csproj --configuration Release
+
+    - name: Pack
       run: |
-          cd GooglePay.PaymentDataCryptography
-          $branch = @($env:GITHUB_REF -split "/")[-1]
-          if($branch -eq "master")
-          {
-            dotnet build --configuration Release
-            dotnet pack --no-build --configuration Release -o out
-          }else {
-            $runNumber = $env:GITHUB_RUN_NUMBER
-            dotnet build --configuration Release --version-suffix "$branch$runNumber"
-            dotnet pack --no-build --configuration Release --version-suffix "$branch$runNumber" -o out
-          }
-      shell: pwsh
-    - name: publish to nuget
-      run: | 
-          dotnet nuget push ./GooglePay.PaymentDataCryptography/out/GooglePay-CryptoUtils.*.symbols.nupkg -k ${{ secrets.Nuget_tristan }} -s https://api.nuget.org/v3/index.json
+        if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+          VERSION_ARGS=""
+        else
+          # SemVer prerelease labels allow only [0-9A-Za-z-], so flatten anything else in the branch name.
+          SUFFIX="$(printf '%s' "$GITHUB_REF_NAME" | tr -c '0-9A-Za-z-' '-')$GITHUB_RUN_NUMBER"
+          VERSION_ARGS="--version-suffix $SUFFIX"
+        fi
+        PROJECT=GooglePay.PaymentDataCryptography/GooglePay.PaymentDataCryptography.csproj
+        dotnet build "$PROJECT" --configuration Release $VERSION_ARGS
+        dotnet pack "$PROJECT" --configuration Release --no-build --output out $VERSION_ARGS
+
+    - name: Publish to NuGet
+      if: github.ref == 'refs/heads/master'
+      run: dotnet nuget push ./out/GooglePay-CryptoUtils.*.symbols.nupkg -k ${{ secrets.Nuget_tristan }} -s https://api.nuget.org/v3/index.json --skip-duplicate
