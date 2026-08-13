@@ -8,14 +8,14 @@ jobs:
     env:
       DOTNET_NOLOGO: true
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         # The Wycheproof test vectors are a submodule; without this the ECDH tests
         # cannot find their data and the suite fails on a missing file.
         submodules: recursive
 
     - name: Setup dotnet
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: '8.0.x'
 
